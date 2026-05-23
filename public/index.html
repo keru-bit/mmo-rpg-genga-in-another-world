@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 MMO RPG - Genga in Another World</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 98%;
+            height: 98vh;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            border: 2px solid #667eea;
+        }
+
+        .game-header {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 20px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            min-height: 60px;
+        }
+
+        .game-title {
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background: #44ff44;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .game-content {
+            display: flex;
+            flex: 1;
+            gap: 10px;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .game-canvas-wrapper {
+            flex: 1;
+            background: #0a0a0a;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: #000;
+            cursor: crosshair;
+        }
+
+        .game-sidebar {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .sidebar-panel {
+            background: rgba(50, 50, 50, 0.95);
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            padding: 12px;
+            color: white;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+
+        .sidebar-panel h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+            font-size: 14px;
+            border-bottom: 1px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 12px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .info-label {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .info-value {
+            color: #aaa;
+        }
+
+        .player-item {
+            padding: 6px;
+            margin-bottom: 4px;
+            background: rgba(102, 126, 234, 0.2);
+            border-left: 3px solid #667eea;
+            border-radius: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .player-name {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .player-status {
+            color: #44ff44;
+        }
+
+        .combat-log-entry {
+            padding: 5px;
+            margin-bottom: 3px;
+            font-size: 11px;
+            border-left: 2px solid #667eea;
+            padding-left: 8px;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
+        .combat-log-entry.damage {
+            color: #ff6666;
+        }
+
+        .combat-log-entry.heal {
+            color: #66ff66;
+        }
+
+        .combat-log-entry.kill {
+            color: #ffff66;
+        }
+
+        button {
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .game-footer {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-top: 2px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .minimap-container {
+            width: 150px;
+            height: 150px;
+            background: rgba(20, 20, 20, 0.8);
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        #minimap {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .skill-bar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+
+        .skill-item {
+            flex: 1;
+            background: rgba(102, 126, 234, 0.3);
+            border: 1px solid #667eea;
+            border-radius: 3px;
+            padding: 4px;
+            text-align: center;
+            font-size: 10px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="game-header">
+            <div class="game-title">⚔️ MMO RPG - Genga in Another World</div>
+            <div class="connection-status">
+                <span id="statusText">Connecting...</span>
+                <div id="statusIndicator" class="status-indicator"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="game-content">
+            <!-- Canvas Area -->
+            <div class="game-canvas-wrapper">
+                <canvas id="gameCanvas" width="1200" height="700"></canvas>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="game-sidebar">
+                <!-- Minimap -->
+                <div class="sidebar-panel" style="padding: 0;">
+                    <h3 style="padding: 8px 12px; margin: 0;">Minimap</h3>
+                    <div class="minimap-container">
+                        <canvas id="minimap" width="150" height="150"></canvas>
+                    </div>
+                </div>
+
+                <!-- Player Stats -->
+                <div class="sidebar-panel">
+                    <h3>Player Stats</h3>
+                    <div class="info-row">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value" id="playerName">Hero</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Position:</span>
+                        <span class="info-value" id="playerPos">0, 0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Health:</span>
+                        <span class="info-value" id="playerHealth">100/100</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Skills:</span>
+                        <span class="info-value" id="playerAttack">1.0</span>
+                    </div>
+                </div>
+
+                <!-- Skills -->
+                <div class="sidebar-panel">
+                    <h3>Skills</h3>
+                    <div class="skill-bar">
+                        <div class="skill-item" title="Attack Skill">⚔️ <span id="skillAttack">1.0</span></div>
+                        <div class="skill-item" title="Defense Skill">🛡️ <span id="skillDefense">1.0</span></div>
+                        <div class="skill-item" title="Dodge Skill">💨 <span id="skillDodge">1.0</span></div>
+                    </div>
+                </div>
+
+                <!-- Players Online -->
+                <div class="sidebar-panel">
+                    <h3>Online Players</h3>
+                    <div id="playersList" style="font-size: 11px;">
+                        <div style="color: #999; text-align: center; padding: 10px;">Connecting...</div>
+                    </div>
+                </div>
+
+                <!-- Combat Log -->
+                <div class="sidebar-panel">
+                    <h3>Combat Log</h3>
+                    <div id="combatLog" style="font-size: 10px;">
+                        <div style="color: #999; text-align: center; padding: 10px;">Waiting for combat...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="game-footer">
+            <div>Ping: <span id="pingValue">-- ms</span></div>
+            <div>FPS: <span id="fpsValue">60</span></div>
+            <div>Players: <span id="playersCount">0</span> | Monsters: <span id="monstersCount">0</span></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        // ==================== SOCKET.IO SETUP ====================
+        const socket = io('http://localhost:3000', {
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: 10
+        });
+
+        // ==================== DOM ELEMENTS ====================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimap');
+        const minimapCtx = minimapCanvas.getContext('2d');
+
+        // ==================== GAME STATE ====================
+        let gameData = {
+            playerId: null,
+            player: null,
+            players: [],
+            monsters: [],
+            world: { size: 2000, chunkSize: 200 },
+            camera: { x: 0, y: 0, zoom: 1 }
+        };
+
+        let combatLog = [];
+        let frameCount = 0;
+        let lastFpsTime = Date.now();
+
+        // ==================== WORLD GENERATION ====================
+        
+        // Anime sprite renderer
+        function drawAnimeCharacter(ctx, x, y, type = 'player', size = 30) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            if (type === 'player') {
+                // Player character
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(-size/3, -size/2, size*2/3, size);
+                ctx.fillStyle = '#FFDBAC';
+                ctx.beginPath();
+                ctx.arc(0, -size/2 - 10, size/3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(-size/6, -size/2 - 10, size/12, size/10);
+                ctx.fillRect(size/12, -size/2 - 10, size/12, size/10);
+            } else if (type === 'slime') {
+                ctx.fillStyle = '#00FF00';
+                ctx.beginPath();
+                ctx.arc(0, 0, size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+                ctx.beginPath();
+                ctx.arc(-size/3, size/3, size/3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(size/3, size/3, size/3, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (type === 'goblin') {
+                ctx.fillStyle = '#228B22';
+                ctx.fillRect(-size/2, -size/2, size, size);
+                ctx.fillStyle = '#32CD32';
+                ctx.beginPath();
+                ctx.arc(-size/4, -size/2, size/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(size/4, -size/2, size/4, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (type === 'skeleton') {
+                ctx.fillStyle = '#CCCCCC';
+                ctx.fillRect(-size/3, -size/2, size*2/3, size);
+                ctx.fillStyle = '#999';
+                ctx.beginPath();
+                ctx.arc(0, -size/2 - 8, size/3, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (type === 'golem') {
+                ctx.fillStyle = '#8B7355';
+                ctx.fillRect(-size/2, -size/2, size, size*1.2);
+                ctx.fillStyle = '#A0826D';
+                ctx.fillRect(-size/2.5, -size/3, size/3, size/3);
+                ctx.fillRect(size/5, -size/3, size/3, size/3);
+            } else if (type === 'ogre') {
+                ctx.fillStyle = '#FF6347';
+                ctx.fillRect(-size/2, -size/2, size, size*1.3);
+                ctx.fillStyle = '#FF7F50';
+                ctx.beginPath();
+                ctx.arc(0, -size/2 - 10, size/2.5, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (type === 'demon') {
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(-size/2, -size/2, size, size*1.4);
+                ctx.fillStyle = '#8B0000';
+                ctx.beginPath();
+                ctx.moveTo(-size/3, -size/2 - 10);
+                ctx.lineTo(0, -size/2 - 20);
+                ctx.lineTo(size/3, -size/2 - 10);
+                ctx.fill();
+            } else if (type === 'dragon') {
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, size*1.2, size, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#FFA500';
+                ctx.beginPath();
+                ctx.arc(size/2, -size/2, size/3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#FF6347';
+                ctx.beginPath();
+                ctx.moveTo(size/2, -size/2);
+                ctx.lineTo(size*0.8, -size*0.8);
+                ctx.lineTo(size*0.9, -size*0.6);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // Draw health bar above entity
+        function drawHealthBar(ctx, x, y, health, maxHealth, width = 40, height = 5) {
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(x - width/2, y - 40, width, height);
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(x - width/2, y - 40, (health / maxHealth) * width, height);
+            ctx.strokeStyle = '#fff';
+            ctx.strokeRect(x - width/2, y - 40, width, height);
+        }
+
+        // ==================== CANVAS RENDERING ====================
+        function drawWorld() {
+            // Clear canvas
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (!gameData.player) return;
+
+            // Camera position (center on player)
+            gameData.camera.x = gameData.player.x;
+            gameData.camera.y = gameData.player.y;
+
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.scale(gameData.camera.zoom, gameData.camera.zoom);
+            ctx.translate(-gameData.camera.x, -gameData.camera.y);
+
+            // Draw world chunks and terrain
+            drawWorldTerrain();
+
+            // Draw monsters
+            gameData.monsters.forEach(monster => {
+                drawAnimeCharacter(ctx, monster.x, monster.y, getMonsterTypeName(monster.type), 25);
+                drawHealthBar(ctx, monster.x, monster.y, monster.health, monster.maxHealth, 40);
+            });
+
+            // Draw player
+            if (gameData.player) {
+                drawAnimeCharacter(ctx, gameData.player.x, gameData.player.y, 'player', 30);
+                drawHealthBar(ctx, gameData.player.x, gameData.player.y, gameData.player.health, gameData.player.maxHealth, 50);
+            }
+
+            // Draw other players
+            gameData.players.forEach(player => {
+                if (player.id !== gameData.playerId) {
+                    drawAnimeCharacter(ctx, player.x, player.y, 'player', 28);
+                    ctx.fillStyle = '#667eea';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(player.name, player.x, player.y + 50);
+                    drawHealthBar(ctx, player.x, player.y, player.health, player.maxHealth, 45);
+                }
+            });
+
+            ctx.restore();
+
+            // Draw UI on screen
+            drawScreenUI();
+        }
+
+        function drawWorldTerrain() {
+            // Draw town (center)
+            ctx.fillStyle = 'rgba(200, 150, 100, 0.3)';
+            ctx.fillRect(-150, -150, 300, 300);
+            ctx.strokeStyle = '#DAA520';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-150, -150, 300, 300);
+
+            // Draw castle in center
+            ctx.fillStyle = '#8B7355';
+            ctx.fillRect(-40, -60, 80, 100);
+            ctx.fillStyle = '#CD853F';
+            ctx.fillRect(-50, -70, 100, 15);
+            ctx.fillStyle = '#D2691E';
+            ctx.fillRect(-35, -50, 20, 20);
+            ctx.fillRect(15, -50, 20, 20);
+
+            // Draw forest rings (difficulty zones)
+            const rings = [
+                { radius: 400, color: 'rgba(34, 139, 34, 0.15)' },
+                { radius: 600, color: 'rgba(34, 139, 34, 0.15)' },
+                { radius: 800, color: 'rgba(34, 139, 34, 0.15)' },
+                { radius: 1000, color: 'rgba(34, 139, 34, 0.15)' },
+                { radius: 1200, color: 'rgba(34, 139, 34, 0.15)' }
+            ];
+
+            rings.forEach((ring, i) => {
+                ctx.strokeStyle = `rgba(34, 139, 34, ${0.2 + i * 0.05})`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, ring.radius, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+
+            // Grid
+            ctx.strokeStyle = 'rgba(102, 126, 234, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = -2000; i < 2000; i += 200) {
+                ctx.beginPath();
+                ctx.moveTo(i, -2000);
+                ctx.lineTo(i, 2000);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(-2000, i);
+                ctx.lineTo(2000, i);
+                ctx.stroke();
+            }
+        }
+
+        function drawScreenUI() {
+            // Draw target info
+            ctx.fillStyle = '#667eea';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Pos: (${Math.floor(gameData.player.x)}, ${Math.floor(gameData.player.y)})`, 20, 30);
+
+            // Draw selected target info if any
+            if (gameData.selectedMonster) {
+                ctx.fillStyle = '#FF6347';
+                ctx.fillText(`Target: ${getMonsterTypeName(gameData.selectedMonster.type)}`, 20, 60);
+                ctx.fillText(`HP: ${gameData.selectedMonster.health}/${gameData.selectedMonster.maxHealth}`, 20, 80);
+            }
+        }
+
+        function getMonsterTypeName(type) {
+            const names = {
+                'SLIME': 'Slime',
+                'GOBLIN': 'Goblin',
+                'SKELETON': 'Skeleton',
+                'GOLEM': 'Golem',
+                'OGRE': 'Ogre',
+                'DEMON': 'Demon',
+                'DRAGON': 'Dragon'
+            };
+            return names[type] || 'Monster';
+        }
+
+        // ==================== MINIMAP ====================
+        function drawMinimap() {
+            minimapCtx.fillStyle = '#0a0a0a';
+            minimapCtx.fillRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+
+            if (!gameData.player) return;
+
+            const scale = minimapCanvas.width / 1000;
+            const centerX = minimapCanvas.width / 2;
+            const centerY = minimapCanvas.height / 2;
+
+            // Draw player
+            minimapCtx.fillStyle = '#FFD700';
+            minimapCtx.fillRect(
+                centerX - 3,
+                centerY - 3,
+                6,
+                6
+            );
+
+            // Draw monsters
+            gameData.monsters.forEach(monster => {
+                const dx = monster.x - gameData.player.x;
+                const dy = monster.y - gameData.player.y;
+                minimapCtx.fillStyle = getMonsterColor(monster.type);
+                minimapCtx.fillRect(
+                    centerX + dx * scale - 2,
+                    centerY + dy * scale - 2,
+                    4,
+                    4
+                );
+            });
+
+            // Draw other players
+            gameData.players.forEach(player => {
+                if (player.id !== gameData.playerId) {
+                    const dx = player.x - gameData.player.x;
+                    const dy = player.y - gameData.player.y;
+                    minimapCtx.fillStyle = '#667eea';
+                    minimapCtx.fillRect(
+                        centerX + dx * scale - 2,
+                        centerY + dy * scale - 2,
+                        4,
+                        4
+                    );
+                }
+            });
+        }
+
+        function getMonsterColor(type) {
+            const colors = {
+                'SLIME': '#00FF00',
+                'GOBLIN': '#228B22',
+                'SKELETON': '#CCCCCC',
+                'GOLEM': '#8B7355',
+                'OGRE': '#FF6347',
+                'DEMON': '#FF0000',
+                'DRAGON': '#FFD700'
+            };
+            return colors[type] || '#aaa';
+        }
+
+        // ==================== COMBAT LOG ====================
+        function addCombatLog(message, type = 'normal') {
+            combatLog.unshift({ message, type, time: Date.now() });
+            if (combatLog.length > 20) combatLog.pop();
+            updateCombatLogUI();
+        }
+
+        function updateCombatLogUI() {
+            const logElement = document.getElementById('combatLog');
+            logElement.innerHTML = combatLog.map(log => 
+                `<div class="combat-log-entry ${log.type}">${log.message}</div>`
+            ).join('');
+        }
+
+        // ==================== SOCKET.IO EVENTS ====================
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            document.getElementById('statusIndicator').classList.add('connected');
+            document.getElementById('statusText').textContent = 'Connected';
+            
+            // Join game with player name
+            const playerName = prompt('Enter your character name:', 'Hero');
+            socket.emit('player-join', { name: playerName || 'Hero' });
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            document.getElementById('statusIndicator').classList.remove('connected');
+            document.getElementById('statusText').textContent = 'Disconnected';
+        });
+
+        socket.on('game-init', (data) => {
+            console.log('Game initialized:', data);
+            gameData.playerId = data.playerId;
+            gameData.player = data.player;
+            gameData.monsters = data.monsters;
+            gameData.players = data.players;
+            
+            document.getElementById('playerName').textContent = data.player.name;
+            addCombatLog(`⚔️ Welcome to Another World, ${data.player.name}!`, 'normal');
+        });
+
+        socket.on('player-moved', (data) => {
+            const player = gameData.players.find(p => p.id === data.id);
+            if (player) {
+                player.x = data.x;
+                player.y = data.y;
+            }
+            if (data.id === gameData.playerId && gameData.player) {
+                gameData.player.x = data.x;
+                gameData.player.y = data.y;
+                document.getElementById('playerPos').textContent = `${Math.floor(data.x)}, ${Math.floor(data.y)}`;
+            }
+        });
+
+        socket.on('player-joined', (player) => {
+            gameData.players.push(player);
+            addCombatLog(`🟢 ${player.name} joined the world`, 'normal');
+            updatePlayersList();
+        });
+
+        socket.on('player-left', (data) => {
+            gameData.players = gameData.players.filter(p => p.id !== data.id);
+            addCombatLog(`🔴 A player left the world`, 'normal');
+            updatePlayersList();
+        });
+
+        socket.on('combat-event', (data) => {
+            if (data.type === 'player-attack') {
+                addCombatLog(`⚔️ ${data.attacker.name} dealt ${data.damage} damage to ${data.defender.type}!`, 'damage');
+                const monster = gameData.monsters.find(m => m.id === data.defender.id);
+                if (monster) {
+                    monster.health = data.targetHealth;
+                }
+            } else if (data.type === 'monster-attack') {
+                addCombatLog(`🔥 ${data.attacker.name} attacked ${data.defender.name} for ${data.damage} damage!`, 'damage');
+                if (data.defender.id === gameData.playerId && gameData.player) {
+                    gameData.player.health = data.targetHealth;
+                    document.getElementById('playerHealth').textContent = `${data.targetHealth}/${gameData.player.maxHealth}`;
+                }
+            }
+        });
+
+        socket.on('monster-died', (data) => {
+            gameData.monsters = gameData.monsters.filter(m => m.id !== data.id);
+            addCombatLog(`💀 Monster defeated! +${data.reward} XP`, 'kill');
+        });
+
+        // ==================== KEYBOARD CONTROLS ====================
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // ==================== MOUSE CONTROLS ====================
+        canvas.addEventListener('click', (e) => {
+            if (!gameData.player) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const canvasX = e.clientX - rect.left;
+            const canvasY = e.clientY - rect.top;
+
+            // Convert screen coordinates to world coordinates
+            const screenCenterX = canvas.width / 2;
+            const screenCenterY = canvas.height / 2;
+            const worldX = gameData.camera.x + (canvasX - screenCenterX) / gameData.camera.zoom;
+            const worldY = gameData.camera.y + (canvasY - screenCenterY) / gameData.camera.zoom;
+
+            // Find closest monster to click
+            let closest = null;
+            let closestDist = 50;
+            gameData.monsters.forEach(monster => {
+                const dist = Math.sqrt(
+                    Math.pow(monster.x - worldX, 2) + 
+                    Math.pow(monster.y - worldY, 2)
+                );
+                if (dist < closestDist) {
+                    closest = monster;
+                    closestDist = dist;
+                }
+            });
+
+            if (closest) {
+                gameData.selectedMonster = closest;
+                socket.emit('attack-monster', { monsterId: closest.id });
+                addCombatLog(`⚔️ Attacking ${getMonsterTypeName(closest.type)}!`, 'damage');
+            }
+        });
+
+        // ==================== GAME LOOP ====================
+        function gameLoop() {
+            // Handle player movement
+            if (gameData.player) {
+                const speed = 5;
+                if (keys['w'] || keys['arrowup']) gameData.player.y -= speed;
+                if (keys['s'] || keys['arrowdown']) gameData.player.y += speed;
+                if (keys['a'] || keys['arrowleft']) gameData.player.x -= speed;
+                if (keys['d'] || keys['arrowright']) gameData.player.x += speed;
+
+                // Emit position to server
+                socket.emit('player-move', {
+                    x: gameData.player.x,
+                    y: gameData.player.y
+                });
+            }
+
+            // Draw game
+            drawWorld();
+            drawMinimap();
+
+            // Update UI
+            updateFPS();
+            updatePlayersList();
+            document.getElementById('monstersCount').textContent = gameData.monsters.length;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateFPS() {
+            frameCount++;
+            const now = Date.now();
+            const elapsed = now - lastFpsTime;
+
+            if (elapsed >= 1000) {
+                document.getElementById('fpsValue').textContent = frameCount;
+                frameCount = 0;
+                lastFpsTime = now;
+            }
+        }
+
+        function updatePlayersList() {
+            const list = document.getElementById('playersList');
+            if (gameData.players.length === 0) {
+                list.innerHTML = '<div style="color: #999; text-align: center; padding: 10px;">Solo adventure</div>';
+                return;
+            }
+            list.innerHTML = gameData.players.map(p => `
+                <div class="player-item">
+                    <span class="player-name">${p.name}</span>
+                    <span class="player-status">HP: ${p.health}/${p.maxHealth}</span>
+                </div>
+            `).join('');
+            document.getElementById('playersCount').textContent = gameData.players.length;
+        }
+
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>
